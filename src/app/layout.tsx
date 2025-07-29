@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Persian Date Converter",
-  description: "Convert Gregorian to Persian date",
+  title: "Persian Date Converter | تبدیل تاریخ فارسی",
+  description:
+    "Convert Persian (Jalaali) dates and times to Gregorian calendar with timezone support",
 };
 
 export default function RootLayout({
@@ -25,14 +26,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full font-sans`}
       >
-        <main className="flex-1 flex items-center justify-center">
-          {children}
-        </main>
-        <footer className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
-          @bryce
-        </footer>
+        {children}
       </body>
     </html>
   );
