@@ -1,24 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Persian Date Converter | تبدیل تاریخ فارسی
 
-## Getting Started
+A beautiful, modern web application for **bidirectional** conversion between Persian (Jalaali) and Gregorian calendars with timezone support.
+
+## ✨ Features
+
+### 🔄 Bidirectional Conversion
+- **Persian to Gregorian**: Convert Persian dates (IRST timezone) to Gregorian (UTC+8)
+- **Gregorian to Persian**: Convert Gregorian dates (UTC+8) to Persian (IRST timezone)
+- **One-click direction swap**: Easily switch conversion direction with animated transitions
+
+### 🎨 Beautiful UI & UX
+- **Modern, responsive design** that works on all devices
+- **Smooth animations** and transitions throughout the interface
+- **Dark/Light theme support** with system preference detection
+- **Glass morphism effects** and gradient backgrounds
+- **Live time widgets** showing both Persian and Gregorian times
+
+### ⚡ Input Methods
+- **Text Input**: Manual date/time entry with format validation
+- **Date Picker**: Interactive calendar for both Persian and Gregorian dates
+- **Real-time conversion** as you type or select dates
+
+### 📱 Mobile-First Design
+- Fully responsive layout optimized for mobile devices
+- Touch-friendly interface elements
+- Optimized typography and spacing for readability
+
+## 🚀 Getting Started
 
 First, run the development server:
 
 ```bash
+bun dev
+# or
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
 
