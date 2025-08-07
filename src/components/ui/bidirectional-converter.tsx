@@ -8,6 +8,11 @@ import { GregorianDateTimePicker } from "@/components/ui/gregorian-datetime-pick
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
+  convertPersianToGregorian as convertP2G,
+  convertGregorianToPersian as convertG2P,
+  type ConversionDirection,
+} from "@/lib/datetime";
+import {
   Keyboard,
   CalendarDays,
   X,
@@ -15,10 +20,8 @@ import {
   Calendar,
   Clock,
 } from "lucide-react";
-import moment from "moment-jalaali";
-import "moment-timezone";
+// moment usage is centralized in '@/lib/datetime'
 
-type ConversionDirection = "persian-to-gregorian" | "gregorian-to-persian";
 type InputMode = "text" | "picker";
 
 export function BidirectionalConverter() {
@@ -31,175 +34,23 @@ export function BidirectionalConverter() {
   const [error, setError] = useState("");
 
   const convertPersianToGregorian = (input: string) => {
-    // Clear previous error
     setError("");
-
-    if (!input.trim()) {
-      setTargetOutput("");
-      return;
-    }
-
-    const fullPattern =
-      /^(\d{4})\/(\d{1,2})\/(\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?(?:\(([A-Z]{3})\))?$/;
-    const match = input.match(fullPattern);
-
-    if (!match) {
-      setError("Please enter in format: YYYY/MM/DD HH:MM or YYYY/MM/DD");
-      setTargetOutput("");
-      return;
-    }
-
-    const [, year, month, day, hours, minutes] = match;
-    const persianYear = parseInt(year);
-    const persianMonth = parseInt(month);
-    const persianDay = parseInt(day);
-
-    // Default to 00:00 if time not specified
-    const hourNum = hours ? parseInt(hours) : 0;
-    const minuteNum = minutes ? parseInt(minutes) : 0;
-
-    // Validate date
-    if (
-      persianMonth < 1 ||
-      persianMonth > 12 ||
-      persianDay < 1 ||
-      persianDay > 31
-    ) {
-      setError("Please enter a valid Persian date");
-      setTargetOutput("");
-      return;
-    }
-
-    // Validate time
-    if (hourNum < 0 || hourNum > 23 || minuteNum < 0 || minuteNum > 59) {
-      setError("Please enter a valid time (00:00 - 23:59)");
-      setTargetOutput("");
-      return;
-    }
-
-    const timeString = `${hourNum.toString().padStart(2, "0")}:${minuteNum
-      .toString()
-      .padStart(2, "0")}`;
-
-    try {
-      // First convert Persian date to Gregorian using moment-jalaali
-      const persianDateMoment = moment(
-        `${persianYear}/${persianMonth}/${persianDay}`,
-        "jYYYY/jM/jD"
-      );
-
-      if (!persianDateMoment.isValid()) {
-        setError("Invalid Persian date");
-        setTargetOutput("");
-        return;
-      }
-
-      // Get Gregorian date string
-      const gregorianDateString = persianDateMoment.format("YYYY-MM-DD");
-
-      // Create moment with Gregorian date and time, then set to Persian timezone
-      const persianMoment = moment(
-        `${gregorianDateString} ${timeString}`,
-        "YYYY-MM-DD HH:mm"
-      ).tz("Asia/Tehran", true); // true keeps the local time
-
-      if (persianMoment.isValid()) {
-        // Convert to UTC+8 (China Standard Time)
-        const utc8Moment = persianMoment.clone().tz("Asia/Shanghai");
-
-        const gregorianDate = utc8Moment.format("YYYY/MM/DD");
-        const gregorianTime = utc8Moment.format("HH:mm");
-
-        setTargetOutput(`${gregorianDate} ${gregorianTime}`);
-      } else {
-        setError("Invalid Persian date or time");
-        setTargetOutput("");
-      }
-    } catch {
-      setError("Date conversion error");
+    const res = convertP2G(input);
+    if (res.ok) {
+      setTargetOutput(res.value || "");
+    } else {
+      setError(res.error || "Date conversion error");
       setTargetOutput("");
     }
   };
 
   const convertGregorianToPersian = (input: string) => {
-    // Clear previous error
     setError("");
-
-    if (!input.trim()) {
-      setTargetOutput("");
-      return;
-    }
-
-    const fullPattern =
-      /^(\d{4})\/(\d{1,2})\/(\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?$/;
-    const match = input.match(fullPattern);
-
-    if (!match) {
-      setError("Please enter in format: YYYY/MM/DD HH:MM or YYYY/MM/DD");
-      setTargetOutput("");
-      return;
-    }
-
-    const [, year, month, day, hours, minutes] = match;
-    const gregorianYear = parseInt(year);
-    const gregorianMonth = parseInt(month);
-    const gregorianDay = parseInt(day);
-
-    // Default to 00:00 if time not specified
-    const hourNum = hours ? parseInt(hours) : 0;
-    const minuteNum = minutes ? parseInt(minutes) : 0;
-
-    // Validate date
-    if (
-      gregorianMonth < 1 ||
-      gregorianMonth > 12 ||
-      gregorianDay < 1 ||
-      gregorianDay > 31
-    ) {
-      setError("Please enter a valid Gregorian date");
-      setTargetOutput("");
-      return;
-    }
-
-    // Validate time
-    if (hourNum < 0 || hourNum > 23 || minuteNum < 0 || minuteNum > 59) {
-      setError("Please enter a valid time (00:00 - 23:59)");
-      setTargetOutput("");
-      return;
-    }
-
-    const timeString = `${hourNum.toString().padStart(2, "0")}:${minuteNum
-      .toString()
-      .padStart(2, "0")}`;
-
-    try {
-      // Create moment with UTC+8 timezone (China Standard Time)
-      const utc8Moment = moment(
-        `${gregorianYear}/${gregorianMonth}/${gregorianDay} ${timeString}`,
-        "YYYY/M/D HH:mm"
-      ).tz("Asia/Shanghai", true); // true keeps the local time
-
-      if (!utc8Moment.isValid()) {
-        setError("Invalid Gregorian date or time");
-        setTargetOutput("");
-        return;
-      }
-
-      // Convert to Persian timezone (IRST)
-      const persianMoment = utc8Moment.clone().tz("Asia/Tehran");
-
-      if (persianMoment.isValid()) {
-        // Format as Persian calendar
-        const persianDate = persianMoment.format("jYYYY/jMM/jDD");
-        const persianTime = persianMoment.format("HH:mm");
-
-        setTargetOutput(`${persianDate} ${persianTime}`);
-      } else {
-        setError("Invalid date conversion");
-        setTargetOutput("");
-      }
-    } catch {
-      setError("Date conversion error");
+    const res = convertG2P(input);
+    if (res.ok) {
+      setTargetOutput(res.value || "");
+    } else {
+      setError(res.error || "Date conversion error");
       setTargetOutput("");
     }
   };

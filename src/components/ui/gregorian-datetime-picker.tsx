@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { dayjs, Dayjs } from "@/lib/dayjs";
 import { CalendarIcon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import moment from "moment-jalaali";
+import {
+  TIMEZONE_UTC8,
+  formatGregorianDisplay,
+  isTodayUtc8,
+} from "@/lib/datetime";
 
 interface GregorianDateTimePickerProps {
   value: string;
@@ -32,48 +37,46 @@ export function GregorianDateTimePicker({
   className,
 }: GregorianDateTimePickerProps) {
   const [open, setOpen] = React.useState(false);
-  const [selectedDate, setSelectedDate] = React.useState<moment.Moment | null>(
-    null
-  );
+  const [selectedDate, setSelectedDate] = React.useState<Dayjs | null>(null);
   const [selectedHour, setSelectedHour] = React.useState<string>("00");
   const [selectedMinute, setSelectedMinute] = React.useState<string>("00");
-  const [currentMonth, setCurrentMonth] = React.useState<moment.Moment>(
-    moment().tz("Asia/Shanghai")
+  const [currentMonth, setCurrentMonth] = React.useState<Dayjs>(
+    dayjs().tz(TIMEZONE_UTC8)
   );
   const [disableCloseAnimation, setDisableCloseAnimation] =
     React.useState(false);
 
   const handleYearChange = (year: string) => {
-    const newMonth = currentMonth.clone().year(parseInt(year));
+    const newMonth = currentMonth.year(parseInt(year));
     setCurrentMonth(newMonth);
   };
 
   // Parse the value prop to set initial state, or default to today
   React.useEffect(() => {
-    let initialDate: moment.Moment;
+    let initialDate: Dayjs;
     if (value) {
       const match = value.match(
         /^(\d{4})\/(\d{1,2})\/(\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?/
       );
       if (match) {
         const [, year, month, day, hours, minutes] = match;
-        const m = moment(`${year}/${month}/${day}`, "YYYY/M/D");
+        const m = dayjs(`${year}/${month}/${day}`, "YYYY/M/D");
         if (m.isValid()) {
-          initialDate = m;
+          initialDate = m.tz(TIMEZONE_UTC8);
           setSelectedHour(hours ? hours.padStart(2, "0") : "00");
           setSelectedMinute(minutes ? minutes.padStart(2, "0") : "00");
         } else {
-          initialDate = moment().tz("Asia/Shanghai"); // Fallback to now if parsing fails
+          initialDate = dayjs().tz(TIMEZONE_UTC8); // Fallback to now if parsing fails
         }
       } else {
-        initialDate = moment().tz("Asia/Shanghai"); // Fallback to now if regex fails
+        initialDate = dayjs().tz(TIMEZONE_UTC8); // Fallback to now if regex fails
       }
     } else {
-      initialDate = moment().tz("Asia/Shanghai"); // Default to now if no value
+      initialDate = dayjs().tz(TIMEZONE_UTC8); // Default to now if no value
     }
 
     setSelectedDate(initialDate);
-    setCurrentMonth(initialDate.clone());
+    setCurrentMonth(initialDate);
     setSelectedHour(initialDate.format("HH"));
     setSelectedMinute(initialDate.format("mm"));
   }, [value, open]);
@@ -95,11 +98,11 @@ export function GregorianDateTimePicker({
 
   const gregorianWeekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  const getDaysInMonth = (date: moment.Moment) => {
+  const getDaysInMonth = (date: Dayjs) => {
     const year = date.year();
     const month = date.month();
     const daysInMonth = date.daysInMonth();
-    const firstDayOfMonth = moment(`${year}/${month + 1}/1`, "YYYY/M/D");
+    const firstDayOfMonth = dayjs(`${year}/${month + 1}/1`, "YYYY/M/D");
     const startDayOfWeek = firstDayOfMonth.day();
 
     const days = [];
@@ -118,10 +121,10 @@ export function GregorianDateTimePicker({
   };
 
   const handleDateSelect = (day: number) => {
-    const newDate = moment(
+    const newDate = dayjs(
       `${currentMonth.year()}/${currentMonth.month() + 1}/${day}`,
       "YYYY/M/D"
-    );
+    ).tz(TIMEZONE_UTC8, true);
     setSelectedDate(newDate);
   };
 
@@ -146,8 +149,7 @@ export function GregorianDateTimePicker({
   };
 
   const handleToday = () => {
-    // Get current time in UTC+8 timezone
-    const now = moment().tz("Asia/Shanghai");
+    const now = dayjs().tz(TIMEZONE_UTC8);
     const dateStr = now.format("YYYY/MM/DD");
     const timeStr = now.format("HH:mm");
     onChange(`${dateStr} ${timeStr}`);
@@ -157,37 +159,10 @@ export function GregorianDateTimePicker({
     setTimeout(() => setDisableCloseAnimation(false), 50);
   };
 
-  const getDisplayValue = () => {
-    if (!value) return "";
-
-    const match = value.match(
-      /^(\d{4})\/(\d{1,2})\/(\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?/
-    );
-    if (match) {
-      const [, year, month, day, hours = "00", minutes = "00"] = match;
-      const m = moment(`${year}/${month}/${day}`, "YYYY/M/D");
-      if (m.isValid()) {
-        const monthName = gregorianMonths[m.month()];
-        const dayNum = m.date();
-        const yearNum = m.year();
-        return `${dayNum} ${monthName} ${yearNum} - ${hours.padStart(
-          2,
-          "0"
-        )}:${minutes.padStart(2, "0")}`;
-      }
-    }
-    return value;
-  };
+  const getDisplayValue = () => (value ? formatGregorianDisplay(value) : "");
 
   const days = getDaysInMonth(currentMonth);
-  const isToday = (day: number) => {
-    const today = moment().tz("Asia/Shanghai");
-    return (
-      day === today.date() &&
-      currentMonth.month() === today.month() &&
-      currentMonth.year() === today.year()
-    );
-  };
+  const isToday = (day: number) => isTodayUtc8(day, currentMonth);
 
   const isSelected = (day: number) => {
     if (!selectedDate) return false;
@@ -199,7 +174,7 @@ export function GregorianDateTimePicker({
   };
 
   // Generate year options (current year ± 50 years)
-  const currentYear = moment().tz("Asia/Shanghai").year();
+  const currentYear = dayjs().tz(TIMEZONE_UTC8).year();
   const yearOptions = Array.from(
     { length: 101 },
     (_, i) => currentYear - 50 + i

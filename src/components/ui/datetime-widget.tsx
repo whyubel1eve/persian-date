@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import moment from "moment-jalaali";
-import "moment-timezone";
+import { getNowInUtc8, getNowInIranPersian } from "@/lib/datetime";
 
 interface AnimatedCharacterProps {
   char: string;
@@ -103,16 +102,8 @@ export function DateTimeWidget() {
     previousGregorianTime.current = gregorianTime;
     previousPersianTime.current = persianTime;
 
-    // Current time in UTC+8 (China Standard Time)
-    const utc8Time = moment().tz("Asia/Shanghai");
-    const newGregorianTime = utc8Time.format("YYYY/MM/DD HH:mm:ss");
-    setGregorianTime(newGregorianTime);
-
-    // Current time in Persian timezone (IRST - Iran Standard Time)
-    const tehranTime = moment().tz("Asia/Tehran");
-    // Convert to Persian calendar - moment-jalaali automatically handles this
-    const newPersianTime = tehranTime.format("jYYYY/jMM/jDD HH:mm:ss");
-    setPersianTime(newPersianTime);
+    setGregorianTime(getNowInUtc8());
+    setPersianTime(getNowInIranPersian());
   }, [gregorianTime, persianTime]);
 
   useEffect(() => {

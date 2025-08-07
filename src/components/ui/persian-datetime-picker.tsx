@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { dayjs, Dayjs } from "@/lib/dayjs";
 import { CalendarIcon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import moment from "moment-jalaali";
+import {
+  TIMEZONE_IRAN,
+  formatPersianDisplay,
+  isTodayIranPersian,
+  getNowIranPersianForPicker,
+} from "@/lib/datetime";
 
 interface PersianDateTimePickerProps {
   value: string;
@@ -32,47 +38,45 @@ export function PersianDateTimePicker({
   className,
 }: PersianDateTimePickerProps) {
   const [open, setOpen] = React.useState(false);
-  const [selectedDate, setSelectedDate] = React.useState<moment.Moment | null>(
-    null
-  );
+  const [selectedDate, setSelectedDate] = React.useState<Dayjs | null>(null);
   const [selectedHour, setSelectedHour] = React.useState<string>("00");
   const [selectedMinute, setSelectedMinute] = React.useState<string>("00");
-  const [currentMonth, setCurrentMonth] = React.useState<moment.Moment>(
-    moment().utcOffset("+03:30")
+  const [currentMonth, setCurrentMonth] = React.useState<Dayjs>(
+    dayjs().tz(TIMEZONE_IRAN).calendar("jalali")
   );
   const [disableCloseAnimation, setDisableCloseAnimation] =
     React.useState(false);
 
   const handleYearChange = (year: string) => {
-    const newMonth = currentMonth.clone().jYear(parseInt(year));
+    const newMonth = currentMonth.calendar("jalali").year(parseInt(year));
     setCurrentMonth(newMonth);
   };
   // Parse the value prop to set initial state, or default to today
   React.useEffect(() => {
-    let initialDate: moment.Moment;
+    let initialDate: Dayjs;
     if (value) {
       const match = value.match(
         /^(\d{4})\/(\d{1,2})\/(\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?/
       );
       if (match) {
         const [, year, month, day, hours, minutes] = match;
-        const m = moment(`${year}/${month}/${day}`, "jYYYY/jM/jD");
+        const m = dayjs(`${year}/${month}/${day}`, { jalali: true });
         if (m.isValid()) {
-          initialDate = m;
+          initialDate = m.tz(TIMEZONE_IRAN);
           setSelectedHour(hours ? hours.padStart(2, "0") : "00");
           setSelectedMinute(minutes ? minutes.padStart(2, "0") : "00");
         } else {
-          initialDate = moment().utcOffset("+03:30"); // Fallback to now if parsing fails
+          initialDate = dayjs().tz(TIMEZONE_IRAN); // Fallback to now if parsing fails
         }
       } else {
-        initialDate = moment().utcOffset("+03:30"); // Fallback to now if regex fails
+        initialDate = dayjs().tz(TIMEZONE_IRAN); // Fallback to now if regex fails
       }
     } else {
-      initialDate = moment().utcOffset("+03:30"); // Default to now if no value
+      initialDate = dayjs().tz(TIMEZONE_IRAN); // Default to now if no value
     }
 
     setSelectedDate(initialDate);
-    setCurrentMonth(initialDate.clone());
+    setCurrentMonth(initialDate.calendar("jalali"));
     setSelectedHour(initialDate.format("HH"));
     setSelectedMinute(initialDate.format("mm"));
   }, [value, open]);
@@ -102,11 +106,12 @@ export function PersianDateTimePicker({
     "ج (Fr)",
   ];
 
-  const getDaysInMonth = (date: moment.Moment) => {
-    const year = date.jYear();
-    const month = date.jMonth();
-    const daysInMonth = moment.jDaysInMonth(year, month);
-    const firstDayOfMonth = moment(`${year}/${month + 1}/1`, "jYYYY/jM/jD");
+  const getDaysInMonth = (date: Dayjs) => {
+    const d = date.calendar("jalali");
+    const year = d.year();
+    const month = d.month();
+    const daysInMonth = d.daysInMonth();
+    const firstDayOfMonth = dayjs(`${year}/${month + 1}/1`, { jalali: true });
     const startDayOfWeek = firstDayOfMonth.day();
 
     const days = [];
@@ -125,10 +130,10 @@ export function PersianDateTimePicker({
   };
 
   const handleDateSelect = (day: number) => {
-    const newDate = moment(
-      `${currentMonth.jYear()}/${currentMonth.jMonth() + 1}/${day}`,
-      "jYYYY/jM/jD"
-    );
+    const d = currentMonth.calendar("jalali");
+    const newDate = dayjs(`${d.year()}/${d.month() + 1}/${day}`, {
+      jalali: true,
+    }).tz(TIMEZONE_IRAN, true);
     setSelectedDate(newDate);
   };
 
@@ -142,7 +147,7 @@ export function PersianDateTimePicker({
 
   const handleConfirm = () => {
     if (selectedDate && selectedDate.isValid()) {
-      const dateStr = selectedDate.format("jYYYY/jMM/jDD");
+      const dateStr = selectedDate.calendar("jalali").format("YYYY/MM/DD");
       const timeStr = `${selectedHour}:${selectedMinute}`;
       onChange(`${dateStr} ${timeStr}`);
     }
@@ -153,60 +158,29 @@ export function PersianDateTimePicker({
   };
 
   const handleToday = () => {
-    // Get current time in Iran timezone (IRST: UTC+3:30)
-    const now = moment().utcOffset("+03:30");
-    const dateStr = now.format("jYYYY/jMM/jDD");
-    const timeStr = now.format("HH:mm");
-    onChange(`${dateStr} ${timeStr}`);
+    onChange(getNowIranPersianForPicker());
     setDisableCloseAnimation(true);
     setOpen(false);
     // Reset animation state after a brief delay
     setTimeout(() => setDisableCloseAnimation(false), 50);
   };
 
-  const getDisplayValue = () => {
-    if (!value) return "";
-
-    const match = value.match(
-      /^(\d{4})\/(\d{1,2})\/(\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?/
-    );
-    if (match) {
-      const [, year, month, day, hours = "00", minutes = "00"] = match;
-      const m = moment(`${year}/${month}/${day}`, "jYYYY/jM/jD");
-      if (m.isValid()) {
-        const monthName = persianMonths[m.jMonth()];
-        const dayNum = m.jDate();
-        const yearNum = m.jYear();
-        return `${dayNum} ${monthName} ${yearNum} - ${hours.padStart(
-          2,
-          "0"
-        )}:${minutes.padStart(2, "0")}`;
-      }
-    }
-    return value;
-  };
+  const getDisplayValue = () => (value ? formatPersianDisplay(value) : "");
 
   const days = getDaysInMonth(currentMonth);
-  const isToday = (day: number) => {
-    const today = moment().utcOffset("+03:30");
-    return (
-      day === today.jDate() &&
-      currentMonth.jMonth() === today.jMonth() &&
-      currentMonth.jYear() === today.jYear()
-    );
-  };
+  const isToday = (day: number) => isTodayIranPersian(day, currentMonth);
 
   const isSelected = (day: number) => {
     if (!selectedDate) return false;
+    const cm = currentMonth.calendar("jalali");
+    const sd = selectedDate.calendar("jalali");
     return (
-      day === selectedDate.jDate() &&
-      currentMonth.jMonth() === selectedDate.jMonth() &&
-      currentMonth.jYear() === selectedDate.jYear()
+      day === sd.date() && cm.month() === sd.month() && cm.year() === sd.year()
     );
   };
 
   // Generate year options (current year ± 50 years)
-  const currentYear = moment().utcOffset("+03:30").jYear();
+  const currentYear = dayjs().tz(TIMEZONE_IRAN).calendar("jalali").year();
   const yearOptions = Array.from(
     { length: 101 },
     (_, i) => currentYear - 50 + i
@@ -251,9 +225,10 @@ export function PersianDateTimePicker({
           <div className="flex items-center justify-center gap-1">
             <div className="flex items-center gap-1 flex-1 min-w-0">
               <Select
-                value={currentMonth.jMonth().toString()}
+                value={currentMonth.calendar("jalali").month().toString()}
                 onValueChange={(value) => {
-                  setCurrentMonth(currentMonth.clone().jMonth(parseInt(value)));
+                  const cm = currentMonth.calendar("jalali");
+                  setCurrentMonth(cm.month(parseInt(value)));
                 }}
               >
                 <SelectTrigger className="h-7 text-xs flex-1 min-w-[100px]">
@@ -273,7 +248,7 @@ export function PersianDateTimePicker({
               </Select>
 
               <Select
-                value={currentMonth.jYear().toString()}
+                value={currentMonth.calendar("jalali").year().toString()}
                 onValueChange={handleYearChange}
               >
                 <SelectTrigger className="w-[70px] h-7 text-xs">
