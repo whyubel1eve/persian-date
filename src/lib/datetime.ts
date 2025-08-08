@@ -51,24 +51,18 @@ export function convertPersianToGregorian(input: string): {
     .toString()
     .padStart(2, "0")}`;
 
-  // Parse Jalali date using jalali plugin, then render as Gregorian date string
-  const persianDate = dayjs(`${persianYear}/${persianMonth}/${persianDay}`, {
-    jalali: true,
-  });
-  if (!persianDate.isValid()) {
-    return { ok: false, error: "Invalid Persian date" };
-  }
-
-  const gregorianDateString = persianDate
-    .calendar("gregory")
-    .format("YYYY-MM-DD");
-
-  // Interpret local IRAN time without converting clock time
-  const tehranLocal = dayjs.tz(
-    `${gregorianDateString} ${timeString}`,
-    "YYYY-MM-DD HH:mm",
-    TIMEZONE_IRAN
-  );
+  // Create a Day.js object by parsing the Jalali date and time.
+  // Then, specify that this date/time is in the Iran timezone.
+  const tehranLocal = dayjs(
+    `${persianYear}-${persianMonth}-${persianDay} ${timeString}`,
+    {
+      jalali: true, // Specify that we are parsing a Jalali date
+      format: "YYYY-M-D HH:mm", // This format is for Day.js internal use, not display
+    }
+  )
+    .tz(TIMEZONE_IRAN, true) // Then, set the timezone to Iran, `true` keeps local time
+    .calendar("jalali")
+    .locale("fa");
 
   if (!tehranLocal.isValid()) {
     return { ok: false, error: "Invalid Persian date or time" };
