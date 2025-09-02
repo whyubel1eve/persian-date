@@ -33,8 +33,8 @@ function AnimatedCharacter({
           >
             {char}
           </span>
-          {/* Underline indicator */}
-          <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-primary rounded-full animate-pulse"></span>
+          {/* Subtle highlight */}
+          <span className="absolute -bottom-0.5 left-0 right-0 h-px bg-primary/50 rounded-full"></span>
         </>
       ) : (
         <span className="inline-block" style={{ width: "1ch" }}>
@@ -78,7 +78,7 @@ function AnimatedTimeDisplay({
   }, [timeString, previousTimeString]);
 
   return (
-    <div className="font-mono text-sm font-bold text-primary">
+    <div className="font-mono text-base font-medium text-foreground/90 tracking-wide">
       {timeString.split("").map((char, index) => (
         <AnimatedCharacter
           key={index}
@@ -130,41 +130,45 @@ export function DateTimeWidget() {
   }, [updateDateTime]);
 
   return (
-    <Card className="fixed left-2 top-1/2 -translate-y-1/2 z-50 min-w-[250px] max-w-[280px] backdrop-blur-sm border-2 shadow-lg bg-card/95 transition-all duration-300 ease-out lg:left-8 lg:min-w-[280px] hidden md:block">
-      <CardContent className="p-3 space-y-2 lg:p-4 lg:space-y-3">
-        {/* Gregorian Time (UTC+8) */}
-        <div className="space-y-1">
-          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Gregorian (UTC+8)
-          </div>
-          <AnimatedTimeDisplay
-            timeString={gregorianTime}
-            previousTimeString={previousGregorianTime.current}
-          />
-        </div>
-
-        {/* Divider */}
-        <div className="border-t border-border/50"></div>
-
-        {/* Persian Time (IRST) */}
-        <div className="space-y-1">
-          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Persian (IRST)
-          </div>
-          <div style={{ direction: "ltr" }}>
-            <AnimatedTimeDisplay
-              timeString={persianTime}
-              previousTimeString={previousPersianTime.current}
-            />
+    <div className="fixed left-6 top-1/2 -translate-y-1/2 z-50 lg:left-8 hidden md:block">
+      <div className="bg-card/90 backdrop-blur-2xl border border-border/20 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 min-w-[240px]">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-sm font-semibold text-foreground">Live Time</h3>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <span className="text-xs text-muted-foreground font-medium">Live</span>
           </div>
         </div>
 
-        {/* Time zone indicator */}
-        <div className="flex items-center space-x-2 pt-1">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-          <span className="text-xs text-muted-foreground">Live</span>
+        <div className="space-y-5">
+          {/* Gregorian Time */}
+          <div className="space-y-2">
+            <div className="text-xs text-muted-foreground font-medium">
+              Gregorian
+            </div>
+            <div className="bg-background/50 rounded-xl px-4 py-3 border border-border/10">
+              <AnimatedTimeDisplay
+                timeString={gregorianTime}
+                previousTimeString={previousGregorianTime.current}
+              />
+            </div>
+          </div>
+
+          {/* Persian Time */}
+          <div className="space-y-2">
+            <div className="text-xs text-muted-foreground font-medium">
+              Persian
+            </div>
+            <div className="bg-background/50 rounded-xl px-4 py-3 border border-border/10" style={{ direction: "ltr" }}>
+              <AnimatedTimeDisplay
+                timeString={persianTime}
+                previousTimeString={previousPersianTime.current}
+              />
+            </div>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

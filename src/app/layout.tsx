@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter, Montserrat } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Navigation } from "@/components/ui/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,9 +27,9 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Persian Date Converter | تبدیل تاریخ فارسی",
+  title: "Tools Platform | Multi-Purpose Utilities",
   description:
-    "Convert Persian (Jalaali) dates and times to Gregorian calendar with timezone support",
+    "A collection of useful tools including Persian date converter, Web3 news feeds, and more utilities for daily use",
 };
 
 export default function RootLayout({
@@ -47,7 +48,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <Navigation />
+          <main className="pt-16">
+            {children}
+          </main>
         </ThemeProvider>
         <Analytics />
       </body>
