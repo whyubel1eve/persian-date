@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 
 export default function Web3FeedsPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-12 px-6">
+    <div className="h-[calc(100vh-4rem)] bg-background overflow-hidden">
+      <div className="container mx-auto h-full flex flex-col px-6 py-8">
         <Web3FeedsComponent />
       </div>
     </div>

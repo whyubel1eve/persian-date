@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { getNowInUtc8, getNowInIranPersian } from "@/lib/datetime";
 
 interface AnimatedCharacterProps {
@@ -131,7 +130,7 @@ export function DateTimeWidget() {
 
   return (
     <div className="fixed left-6 top-1/2 -translate-y-1/2 z-50 lg:left-8 hidden md:block">
-      <div className="bg-card/90 backdrop-blur-2xl border border-border/20 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 min-w-[240px]">
+      <div className="bg-card/95 border border-border/20 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 min-w-[240px]">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-sm font-semibold text-foreground">Live Time</h3>

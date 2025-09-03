@@ -186,13 +186,13 @@ export function GregorianDateTimePicker({
         <Button
           variant="outline"
           className={cn(
-            "justify-between text-left font-normal h-16 text-xl px-4 border-2 hover:border-primary/50 transition-all duration-200",
+            "justify-between text-left font-normal h-12 text-lg px-4 border border-border hover:border-ring transition-all duration-200 bg-card text-foreground shadow-sm rounded-xl",
             !value && "text-muted-foreground",
             className
           )}
         >
           <div className="flex items-center gap-3">
-            <CalendarIcon className="h-5 w-5 text-primary" />
+            <CalendarIcon className="h-5 w-5 text-muted-foreground" />
             <span className="font-mono">
               {getDisplayValue() || placeholder}
             </span>
@@ -206,7 +206,7 @@ export function GregorianDateTimePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-auto p-0 max-w-[90vw] sm:max-w-[400px] max-h-[85vh] overflow-hidden"
+        className="w-auto p-0 max-w-[90vw] sm:max-w-[400px] max-h-[85vh] overflow-hidden bg-popover text-popover-foreground border border-border shadow-md"
         align="start"
         side="bottom"
         sideOffset={4}
@@ -379,7 +379,7 @@ export function GregorianDateTimePicker({
             <Button
               size="sm"
               onClick={handleConfirm}
-              className="bg-primary hover:bg-primary/90 text-xs h-8"
+              className="text-xs h-8"
             >
               Confirm
             </Button>

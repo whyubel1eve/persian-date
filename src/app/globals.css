@@ -292,6 +292,32 @@ body {
     animation: title-glow 2s ease-in-out infinite;
   }
 
+  /* Picker Components on Prism Background */
+  .prism-picker-trigger {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    backdrop-filter: blur(8px);
+  }
+  
+  .prism-picker-content {
+    background: rgba(0, 0, 0, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(8px);
+  }
+  
+  .prism-select-trigger {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+  }
+  
+  .prism-select-content {
+    background: rgba(0, 0, 0, 0.85) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(4px);
+  }
+
   /* Electric Border Components */
   .electric-border-container {
     padding: 2px;
